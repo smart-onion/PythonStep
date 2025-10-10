@@ -1,3 +1,5 @@
+import json
+
 class Book:
     __slots__ = ("__name", "__author", "__total_pages")
 
@@ -35,8 +37,8 @@ class Book:
         return self.__total_pages > 300
 
 
-book = Book("Name", "Author", 301)
-book.get_info()
+# book = Book("Name", "Author", 301)
+# book.get_info()
 
 
 class Counter:
@@ -101,3 +103,91 @@ class BankAccount:
 
     def display_balance(self):
         print(f"Current balance: {self.__balance}")
+
+
+# /////////////////////////////////////////////////////////////////
+
+class Library:
+    def __init__(self):
+        self.__library: [Book] = []
+
+    def add_book(self, book: Book):
+        self.__library.append(book)
+
+    def remove_book_by_name(self, name: str):
+        self.__library = filter(lambda b: b.name != name, self.__library)
+
+    def get_book_by_name(self, name: str) -> Book:
+        for book in self.__library:
+            if book.name == name:
+                return book
+
+
+class Dish:
+    def __init__(self, name: str, price: float, category: str):
+        self.__name = name
+        self.__price = price
+        self.__category = category
+
+    def info(self):
+        print(f"Name: {self.__name}\nprice: {self.__price}\ncategory: {self.__category}")
+
+    @property
+    def name(self): return self.__name
+    @property
+    def price(self): return self.__price
+    @property
+    def category(self): return self.__category
+
+
+class Order:
+    def __init__(self):
+        self.__orders: [Dish] = []
+
+    def add_dish(self, dish: Dish):
+        self.__orders.append(dish)
+
+    def remove_dish_by_name(self, name: str):
+        self.__orders = filter(lambda b: b.name != name, self.__orders)
+
+    def total_bill(self):
+        total = 0
+        for i in self.__orders:
+            total += i.price
+        return total
+
+class Restorant:
+    def __init__(self):
+        self.__menu: [Dish] = []
+
+    def add_dish_to_menu(self, dish: Dish):
+        self.__menu.append(dish)
+
+    def show_menu(self):
+        for dish in self.__menu:
+            print(f"Name: {dish.name}\n\tPrice: {dish.price}\n\tCategory: {dish.category}")
+
+
+class Student:
+    def __init__(self, name, age):
+        self.name: str = name
+        self.age: int = age
+        self.scores: [int] = []
+
+    def average_score(self) -> float:
+        return sum(self.scores) / self.scores.count()
+
+class StudentDatabase:
+    def __init__(self):
+        self.__students: [Student] = []
+
+    def add_student(self, student: Student):
+        self.__students.append(student)
+
+    def get_students(self, student_name: str):
+        return self.__students
+
+    def find_student_by_name(self, name:srt):
+        for student in self.__students:
+            if student.name == name:
+                return student
