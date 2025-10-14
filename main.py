@@ -1,193 +1,221 @@
-import json
-
-class Book:
-    __slots__ = ("__name", "__author", "__total_pages")
-
-    def __init__(self, name: str, author: str, total_pages: int):
-        self.__name: str = name
-        self.__author = author
-        self.__total_pages = total_pages
-
-    @property
-    def name(self):
-        return self.__name
-
-    @name.setter
-    def name(self, value):
-        self.__name = value
-
-    @property
-    def author(self): return self.__author
-
-    @author.setter
-    def author(self, author: str):
-        self.__author = author
-
-    @property
-    def total_pages(self): return self.__name
-
-    @total_pages.setter
-    def total_pages(self, name: str):
-        self.__name = name
-
-    def get_info(self):
-        print(f"Name: {self.__name}\nAuthor: {self.__author}\nTotal Pages: {self.total_pages}")
-
-    def is_more_then_300(self) -> bool:
-        return self.__total_pages > 300
+from typing import get_type_hints
+import time
 
 
-# book = Book("Name", "Author", 301)
-# book.get_info()
+def type_validator(func):
+    def wrapper(*args):
+        annotation: dict[str, type] = get_type_hints(func)
+        for t, i in zip(annotation.values(), args):
+            if t != type(i):
+                raise TypeError(f"{i} not type of {t}")
+        return func(*args)
+
+    return wrapper
 
 
-class Counter:
-    def __init__(self):
-        self.__count = 0
+def cache(func):
+    storage = {}
 
-    def increment(self):
-        self.__count += 1
+    def wrapper(*args, **kwargs):
+        args_hash = hash(args) + hash(tuple(kwargs))
 
-    def decrement(self):
-        self.__count -= 1
+        if args_hash in storage:
+            return storage[args_hash]
 
-    def reset(self):
-        self.__count = 0
+        result = func(*args, **kwargs)
+        storage[args_hash] = result
+        return result
 
-    def get_value(self):
-        return self.__count
-
-
-class Calculator:
-    @staticmethod
-    def add(a: int, b: int) -> int:
-        return a + b
-
-    @staticmethod
-    def subtract(a: int, b: int) -> int:
-        return a - b
-
-    @staticmethod
-    def multiply(a: int, b: int) -> int:
-        return a * b
-
-    @staticmethod
-    def divide(a: int, b: int) -> float:
-        if b == 0:
-            print("ZeroDivisionError")
-        return a / b
+    return wrapper
 
 
-class Rectangle:
-    def __init__(self, width: float, height: float):
-        self.__width = width
-        self.__height = height
-
-    def area(self): return self.__width * self.__height
-
-    def perimeter(self): return (self.__width * 2) + (self.__height * 2)
-
-    def is_square(self): return self.__width == self.__height
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
 
 
-class BankAccount:
-    def __init__(self, name: str, balance: float):
-        self.__name = name
-        self.__balance = balance
+def authorize(func):
+    user_db: [User] = [User("alex", "123456"), User("bob", "1234")]
 
-    def deposit(self, amount: float):
-        self.__balance += amount
+    def wrapper(user: User, *args, **kwargs):
+        for credentials in user_db:
+            if credentials.username == user.username and credentials.password == user.password:
+                return func(user, *args, **kwargs)
+        raise Exception("Not authorized")
 
-    def withdraw(self, amount: float):
-        self.__balance = self.__balance - amount if self.__balance >= amount else self.__balance
-
-    def display_balance(self):
-        print(f"Current balance: {self.__balance}")
+    return wrapper
 
 
-# /////////////////////////////////////////////////////////////////
+def try_again(count: int):
+    def inner(func):
+        def wrapper(*args, **kwargs):
+            attempts_left = count
+            while attempts_left != 0:
+                try:
+                    return func(*args, **kwargs)
+                except Exception as ex:
+                    print(ex)
+                    attempts_left -= 1
+            return Exception
 
-class Library:
-    def __init__(self):
-        self.__library: [Book] = []
+        return wrapper
 
-    def add_book(self, book: Book):
-        self.__library.append(book)
-
-    def remove_book_by_name(self, name: str):
-        self.__library = filter(lambda b: b.name != name, self.__library)
-
-    def get_book_by_name(self, name: str) -> Book:
-        for book in self.__library:
-            if book.name == name:
-                return book
-
-
-class Dish:
-    def __init__(self, name: str, price: float, category: str):
-        self.__name = name
-        self.__price = price
-        self.__category = category
-
-    def info(self):
-        print(f"Name: {self.__name}\nprice: {self.__price}\ncategory: {self.__category}")
-
-    @property
-    def name(self): return self.__name
-    @property
-    def price(self): return self.__price
-    @property
-    def category(self): return self.__category
+    return inner
 
 
-class Order:
-    def __init__(self):
-        self.__orders: [Dish] = []
-
-    def add_dish(self, dish: Dish):
-        self.__orders.append(dish)
-
-    def remove_dish_by_name(self, name: str):
-        self.__orders = filter(lambda b: b.name != name, self.__orders)
-
-    def total_bill(self):
-        total = 0
-        for i in self.__orders:
-            total += i.price
-        return total
-
-class Restorant:
-    def __init__(self):
-        self.__menu: [Dish] = []
-
-    def add_dish_to_menu(self, dish: Dish):
-        self.__menu.append(dish)
-
-    def show_menu(self):
-        for dish in self.__menu:
-            print(f"Name: {dish.name}\n\tPrice: {dish.price}\n\tCategory: {dish.category}")
+@try_again(4)
+def add(user: User, x, y):
+    return x + y
 
 
-class Student:
-    def __init__(self, name, age):
-        self.name: str = name
-        self.age: int = age
-        self.scores: [int] = []
+def fibonachi():
+    last = 1
+    prev = 0
+    while True:
+        number = last + prev
+        prev = last
+        last = number
+        yield number
 
-    def average_score(self) -> float:
-        return sum(self.scores) / self.scores.count()
 
-class StudentDatabase:
-    def __init__(self):
-        self.__students: [Student] = []
+a = fibonachi()
+print(next(a))
+print(next(a))
+print(next(a))
+print(next(a))
+print("\n\n\n/////////////////////////////////////////////////")
 
-    def add_student(self, student: Student):
-        self.__students.append(student)
 
-    def get_students(self, student_name: str):
-        return self.__students
+def multiple_to_3_and_5(limit: int = 1000):
+    for i in range(1, limit):
+        if i % 3 == 0 and i % 5 == 0:
+            yield i
 
-    def find_student_by_name(self, name:srt):
-        for student in self.__students:
-            if student.name == name:
-                return student
+
+b = multiple_to_3_and_5()
+print(next(b))
+
+
+def infinite_factorial():
+    number = 1
+    result = 1
+    while True:
+        result = number * result
+        number += 1
+        yield result
+
+
+c = infinite_factorial()
+print(next(c))
+print(next(c))
+print(next(c))
+print(next(c))
+print(next(c))
+
+
+def only_element(index: int, elems: list):
+    current = 0
+    for i in elems:
+        if current != 0 and current % index == 0:
+            yield i
+        current += 1
+
+
+d = only_element(3, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+print(next(d))
+print(next(d))
+print(next(d))
+
+
+def closing_limit():
+    limit = 3
+
+    def inner():
+        nonlocal limit
+        if limit == 0:
+            print("Limit of function call exceeded")
+            return
+
+        print(f"Doing some job {limit}")
+        limit -= 1
+        return
+
+    return inner
+
+
+closing = closing_limit()
+closing()
+closing()
+closing()
+closing()
+closing()
+
+
+def is_number_in_numbers(numbers: [int]):
+    def inner(number: int):
+        return number in numbers
+
+    return inner
+
+
+numbers = is_number_in_numbers([12, 3, 4, 45, 65])
+
+print(numbers(12))
+print(numbers(1234))
+
+
+def string_formatter(template: str):
+    def inner(**kwargs):
+        return template.format(**kwargs)
+
+    return inner
+
+
+frm = string_formatter("Hi {name}!")
+
+print(frm(name="Alex"))
+
+
+def difference():
+    prev = 0
+
+    def inner(number: int):
+        nonlocal prev
+        prev = number - prev
+        return prev
+
+    return inner
+
+
+deff = difference()
+
+print(deff(1))
+print(deff(2))
+print(deff(24))
+print(deff(23))
+
+print("\n///////////////////////////////////////////////////////////////////\n\n")
+
+
+def unique_call():
+    called_storage = []
+
+    def inner(*args, **kwargs):
+        nonlocal called_storage
+        args_hash = hash(args) + hash(tuple(kwargs))
+        if args_hash not in called_storage:
+            called_storage.append(args_hash)
+        return len(called_storage)
+
+    return inner
+
+
+unique = unique_call()
+
+print(unique(1))
+print(unique(2))
+print(unique(3))
+print(unique(3))
+print(unique(3, 2))
+print(unique(3))
