@@ -1,27 +1,129 @@
-from typing import get_type_hints
 import time
 
 
-def type_validator(func):
-    def wrapper(*args):
-        annotation: dict[str, type] = get_type_hints(func)
-        for t, i in zip(annotation.values(), args):
-            if t != type(i):
-                raise TypeError(f"{i} not type of {t}")
-        return func(*args)
+class Engine:
+    def start_engine(self):
+        print("Engine start")
 
-    return wrapper
+    def stop_engine(self):
+        print("Engine stop")
 
 
-def cache(func):
+class Vehicle:
+    def __init__(self, max_speed):
+        self.max_speed = max_speed
+
+    def drive(self):
+        print(f"Driving with max speed {self.max_speed}")
+
+
+class Car(Vehicle, Engine):
+    def __init__(self, max_speed, model):
+        Vehicle.__init__(self, max_speed)
+        self.model = model
+
+    def drive(self):
+        print(f"Car {self.model} driving with max speed {self.max_speed}")
+
+
+class Boat(Vehicle, Engine):
+    def __init__(self, max_speed, boat_type):
+        super().__init__(max_speed)
+        self.type = boat_type
+
+    def drive(self):
+        print(f"Boat {self.type} driving with max speed {self.max_speed}")
+
+
+class AmphibiousVehicle(Car, Boat):
+
+    def __init__(self, max_speed, model, boat_type):
+        Car.__init__(self, max_speed, model)
+        Boat.__init__(self, max_speed, boat_type)
+        self.is_on_land = True
+
+    def drive(self):
+        if self.is_on_land:
+            Car.drive(self)
+        else:
+            Boat.drive(self)
+
+
+am = AmphibiousVehicle(10, "asd", "asd")
+am.is_on_land = True
+am.drive()
+
+
+class Book:
+    def __init__(self, name: str, pages: int):
+        self.name: str = name
+        self.pages: int = pages
+
+    def __ge__(self, other):
+        return self.pages >= other.pages
+
+    def __le__(self, other):
+        return self.pages <= other.pages
+
+    def __gt__(self, other):
+        return self.pages > other.pages
+
+    def __lt__(self, other):
+        return self.pages < other.pages
+
+    def __eq__(self, other):
+        return self.pages == other.pages
+
+    def __ne__(self, other):
+        return self.pages != other.pages
+
+    def __str__(self):
+        return f"Name: {self.name} Pages: {self.pages}"
+
+
+class Library:
+    def __init__(self, books=None):
+        self.books: [Book] = books if books is not None else []
+
+    def __iadd__(self, other: Book):
+        self.books.append(other)
+        return self
+
+    def __isub__(self, other: Book):
+        self.books.remove(other)
+        return self
+
+    def __contains__(self, item: Book):
+        return item in self.books
+
+    def __len__(self):
+        return len(self.books)
+
+    def __str__(self):
+        text = "Library:"
+        for i in self.books:
+            text += f"\n\t{i}"
+        return text
+
+
+lib = Library()
+
+b1 = Book("MyFirst", 120)
+b2 = Book("Second", 130)
+
+lib += b1
+lib += b2
+
+lib -= b1
+
+
+def cache_decorator(func):
     storage = {}
 
     def wrapper(*args, **kwargs):
         args_hash = hash(args) + hash(tuple(kwargs))
-
         if args_hash in storage:
             return storage[args_hash]
-
         result = func(*args, **kwargs)
         storage[args_hash] = result
         return result
@@ -29,193 +131,26 @@ def cache(func):
     return wrapper
 
 
-class User:
-    def __init__(self, username, password):
-        self.username = username
-        self.password = password
+def cache_class_methods(cls):
+    for f, method in cls.__dict__.items():
+        if callable(method):
+            try:
+                setattr(cls, f"{f}", cache_decorator(method))
+            except TypeError:
+                pass
+    return cls
 
 
-def authorize(func):
-    user_db: [User] = [User("alex", "123456"), User("bob", "1234")]
+@cache_class_methods
+class Test:
+    def __init__(self):
+        pass
 
-    def wrapper(user: User, *args, **kwargs):
-        for credentials in user_db:
-            if credentials.username == user.username and credentials.password == user.password:
-                return func(user, *args, **kwargs)
-        raise Exception("Not authorized")
-
-    return wrapper
+    def foo(self, x, y):
+        return x + y
 
 
-def try_again(count: int):
-    def inner(func):
-        def wrapper(*args, **kwargs):
-            attempts_left = count
-            while attempts_left != 0:
-                try:
-                    return func(*args, **kwargs)
-                except Exception as ex:
-                    print(ex)
-                    attempts_left -= 1
-            return Exception
-
-        return wrapper
-
-    return inner
-
-
-@try_again(4)
-def add(user: User, x, y):
-    return x + y
-
-
-def fibonachi():
-    last = 1
-    prev = 0
-    while True:
-        number = last + prev
-        prev = last
-        last = number
-        yield number
-
-
-a = fibonachi()
-print(next(a))
-print(next(a))
-print(next(a))
-print(next(a))
-print("\n\n\n/////////////////////////////////////////////////")
-
-
-def multiple_to_3_and_5(limit: int = 1000):
-    for i in range(1, limit):
-        if i % 3 == 0 and i % 5 == 0:
-            yield i
-
-
-b = multiple_to_3_and_5()
-print(next(b))
-
-
-def infinite_factorial():
-    number = 1
-    result = 1
-    while True:
-        result = number * result
-        number += 1
-        yield result
-
-
-c = infinite_factorial()
-print(next(c))
-print(next(c))
-print(next(c))
-print(next(c))
-print(next(c))
-
-
-def only_element(index: int, elems: list):
-    current = 0
-    for i in elems:
-        if current != 0 and current % index == 0:
-            yield i
-        current += 1
-
-
-d = only_element(3, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-print(next(d))
-print(next(d))
-print(next(d))
-
-
-def closing_limit():
-    limit = 3
-
-    def inner():
-        nonlocal limit
-        if limit == 0:
-            print("Limit of function call exceeded")
-            return
-
-        print(f"Doing some job {limit}")
-        limit -= 1
-        return
-
-    return inner
-
-
-closing = closing_limit()
-closing()
-closing()
-closing()
-closing()
-closing()
-
-
-def is_number_in_numbers(numbers: [int]):
-    def inner(number: int):
-        return number in numbers
-
-    return inner
-
-
-numbers = is_number_in_numbers([12, 3, 4, 45, 65])
-
-print(numbers(12))
-print(numbers(1234))
-
-
-def string_formatter(template: str):
-    def inner(**kwargs):
-        return template.format(**kwargs)
-
-    return inner
-
-
-frm = string_formatter("Hi {name}!")
-
-print(frm(name="Alex"))
-
-
-def difference():
-    prev = 0
-
-    def inner(number: int):
-        nonlocal prev
-        prev = number - prev
-        return prev
-
-    return inner
-
-
-deff = difference()
-
-print(deff(1))
-print(deff(2))
-print(deff(24))
-print(deff(23))
-
-print("\n///////////////////////////////////////////////////////////////////\n\n")
-
-
-def unique_call():
-    called_storage = []
-
-    def inner(*args, **kwargs):
-        nonlocal called_storage
-        args_hash = hash(args) + hash(tuple(kwargs))
-        if args_hash not in called_storage:
-            called_storage.append(args_hash)
-        return len(called_storage)
-
-    return inner
-
-
-unique = unique_call()
-
-print(unique(1))
-print(unique(2))
-print(unique(3))
-print(unique(3))
-print(unique(3, 2))
-print(unique(3))
+a = Test()
+print(a.foo(1, 1))
+print(a.foo(1, 1))
+print(a.foo(1, 2))
