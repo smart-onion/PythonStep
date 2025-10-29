@@ -1,156 +1,196 @@
-import time
+class PositiveValue:
+    def __get__(self, instance, instance_type):
+        print("sd")
+        return instance.value
+
+    def __set__(self, instance, value):
+        if value < 0:
+            raise ValueError("Value can't be less then 0")
+        instance.value = value
 
 
-class Engine:
-    def start_engine(self):
-        print("Engine start")
+class Name:
+    def __get__(self, instance, owner):
+        return instance.value
 
-    def stop_engine(self):
-        print("Engine stop")
+    def __set__(self, instance, value):
+        if not isinstance(value, str):
+            raise ValueError("Name mast be a string")
 
-
-class Vehicle:
-    def __init__(self, max_speed):
-        self.max_speed = max_speed
-
-    def drive(self):
-        print(f"Driving with max speed {self.max_speed}")
+        if value.isalpha() and value[0].isupper():
+            instance.value = value
+            return
+        raise ValueError("Name mast start from upper letter and letters only")
 
 
-class Car(Vehicle, Engine):
-    def __init__(self, max_speed, model):
-        Vehicle.__init__(self, max_speed)
-        self.model = model
+class BankAccount:
+    __balance = PositiveValue()
+    name = Name()
 
-    def drive(self):
-        print(f"Car {self.model} driving with max speed {self.max_speed}")
+    def __init__(self, name: str, amount: int):
+        self.name = name
+        self.__balance = amount
 
-
-class Boat(Vehicle, Engine):
-    def __init__(self, max_speed, boat_type):
-        super().__init__(max_speed)
-        self.type = boat_type
-
-    def drive(self):
-        print(f"Boat {self.type} driving with max speed {self.max_speed}")
+    def check_balance(self):
+        return self.__balance
 
 
-class AmphibiousVehicle(Car, Boat):
-
-    def __init__(self, max_speed, model, boat_type):
-        Car.__init__(self, max_speed, model)
-        Boat.__init__(self, max_speed, boat_type)
-        self.is_on_land = True
-
-    def drive(self):
-        if self.is_on_land:
-            Car.drive(self)
-        else:
-            Boat.drive(self)
+b = BankAccount("Asd", 10)
 
 
-am = AmphibiousVehicle(10, "asd", "asd")
-am.is_on_land = True
-am.drive()
+class LogDescriptor:
+    def __get__(self, instance, owner):
+        print(f"Reading from {instance}")
+        return instance.value
+
+    def __set__(self, instance, value):
+        print(f"Writing to {instance}")
+        instance.value = value
 
 
-class Book:
-    def __init__(self, name: str, pages: int):
-        self.name: str = name
-        self.pages: int = pages
+class LogTester:
+    log = LogDescriptor()
 
-    def __ge__(self, other):
-        return self.pages >= other.pages
-
-    def __le__(self, other):
-        return self.pages <= other.pages
-
-    def __gt__(self, other):
-        return self.pages > other.pages
-
-    def __lt__(self, other):
-        return self.pages < other.pages
-
-    def __eq__(self, other):
-        return self.pages == other.pages
-
-    def __ne__(self, other):
-        return self.pages != other.pages
-
-    def __str__(self):
-        return f"Name: {self.name} Pages: {self.pages}"
-
-
-class Library:
-    def __init__(self, books=None):
-        self.books: [Book] = books if books is not None else []
-
-    def __iadd__(self, other: Book):
-        self.books.append(other)
-        return self
-
-    def __isub__(self, other: Book):
-        self.books.remove(other)
-        return self
-
-    def __contains__(self, item: Book):
-        return item in self.books
-
-    def __len__(self):
-        return len(self.books)
-
-    def __str__(self):
-        text = "Library:"
-        for i in self.books:
-            text += f"\n\t{i}"
-        return text
-
-
-lib = Library()
-
-b1 = Book("MyFirst", 120)
-b2 = Book("Second", 130)
-
-lib += b1
-lib += b2
-
-lib -= b1
-
-
-def cache_decorator(func):
-    storage = {}
-
-    def wrapper(*args, **kwargs):
-        args_hash = hash(args) + hash(tuple(kwargs))
-        if args_hash in storage:
-            return storage[args_hash]
-        result = func(*args, **kwargs)
-        storage[args_hash] = result
-        return result
-
-    return wrapper
-
-
-def cache_class_methods(cls):
-    for f, method in cls.__dict__.items():
-        if callable(method):
-            try:
-                setattr(cls, f"{f}", cache_decorator(method))
-            except TypeError:
-                pass
-    return cls
-
-
-@cache_class_methods
-class Test:
     def __init__(self):
-        pass
-
-    def foo(self, x, y):
-        return x + y
+        self.log = 1
 
 
-a = Test()
-print(a.foo(1, 1))
-print(a.foo(1, 1))
-print(a.foo(1, 2))
+class WithoutUnderscore(type):
+    def __new__(cls, name, bases, attrs: dict):
+        print(attrs)
+        for attr in attrs.keys():
+            if attr.startswith("_") and not attr.startswith("__") and not attr.endswith("__"):
+                raise ValueError("Attribute can't start with '_'")
+
+        return super().__new__(cls, name, bases, attrs)
+
+
+class TestAttributes(metaclass=WithoutUnderscore):
+    a = 1
+
+
+class HelloMetaClass(type):
+    def __new__(cls, name, bases, attrs: dict):
+        attrs["hello"] = lambda x: print("Hello")
+        return super().__new__(cls, name, bases, attrs)
+
+
+class TestHello(metaclass=HelloMetaClass):
+    pass
+
+
+TestHello().hello()
+
+
+class NoForbiddenInherit(type):
+    def __new__(cls, name, bases, attrs: dict):
+        for base in bases:
+            if "Forbidden" in base.__name__:
+                raise TypeError("Can't inherit from class with 'Forbidden' in name")
+
+
+class ForbiddenClass:
+    pass
+
+
+# class TestNoForbiddenInherit(ForbiddenClass, metaclass=NoForbiddenInherit):
+#     pass
+
+
+class StringAttributesOnly(type):
+    def __new__(cls, name, bases, attrs: dict):
+        for v in attrs.values():
+            if not isinstance(v, str):
+                raise ValueError("String allowed only")
+
+
+class TestStringOnly(metaclass=StringAttributesOnly):
+    a = "test"
+    # b = 12
+
+
+from typing import Protocol, runtime_checkable
+from abc import ABC, abstractmethod
+
+
+@runtime_checkable
+class Shape(Protocol):
+    @abstractmethod
+    def area(self) -> int: raise NotImplemented
+
+
+class Rectangle(Shape):
+    def __init__(self, a: int, b: int):
+        self.a = a
+        self.b = b
+
+    def area(self) -> int:
+        return self.a * self.b
+
+
+a = Rectangle(1, 2)
+
+
+def test_protocol(shape: Shape) -> None:
+    print(shape.area() * 2)
+
+
+test_protocol(a)
+
+
+class Circle(Shape):
+    __PI = 3.14
+
+    def __init__(self, r):
+        self.r = r
+
+    def area(self) -> int:
+        return (2 * self.__PI * (self.r ** 2)) / 2
+
+    @property
+    def pi(self): return self.__PI
+
+
+class Triangle(Shape):
+    def __init__(self, base, height):
+        self.base = base
+        self.height = height
+
+    def area(self) -> int:
+        return 0.5 * self.base * self.height
+
+
+def print_area(shape: Shape) -> None:
+    print(shape.area())
+
+
+class Serializable(Protocol):
+    def serialize(self) -> str: pass
+
+
+import json
+
+
+class Book(Serializable):
+    def __init__(self, name):
+        self.name = name
+        self.tt = 123
+
+    def serialize(self):
+        return json.dumps(self.__dict__)
+
+
+class Person(Serializable):
+    def __init__(self, name, age):
+        self.name = name
+        self.age = age
+
+    def serialize(self) -> str:
+        return json.dumps(self.__dict__)
+
+
+def serialize_object(obj: Serializable):
+    print(obj.serialize())
+
+
+serialize_object(Book("ased"))
