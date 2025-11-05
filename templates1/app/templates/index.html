@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    {% regroup tasks by category  as categories %}
+    {% for cat in categories  %}
+        <h3>{{cat.grouper}}</h3>
+
+        {% for i in cat.list %}
+            <ol>
+            {% if k != "category" %}
+                    <li style="color: {% cycle "grey" "green" %}" >
+                        {% if i.completed == True %}
+                            <s>{{i.title}}  {{i.time}}</s>
+                        {% else %} 
+                            <span>{{i.title}}  {{i.time}}</span>
+                        {% endif %} 
+                    </li>
+            {% endif %}
+            </ol>
+        {% endfor %}
+        {% empty %}
+        <p>No tasks for today</p>
+    {% endfor %}
+</body>
+</html>
