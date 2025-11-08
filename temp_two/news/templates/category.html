@@ -1,0 +1,11 @@
+{% extends "_layout.html" %}
+
+{% block category_page %}
+    <div class="container row mb-3 text-center gap-3">
+    {% for n in news  %}
+        {% include "components/news_card.html" with news=n %}
+        {% empty %}
+        <p>No news yet</p>
+    {% endfor %}
+    </div>
+{% endblock category_page %}

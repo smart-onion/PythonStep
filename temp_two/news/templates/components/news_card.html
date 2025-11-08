@@ -1,0 +1,10 @@
+{% load static %}
+
+<div class="card" style="width: 18rem;">
+  <img src="{% static "assets/" %}{{news.image}}" class="card-img-top" alt="...">
+  <div class="card-body">
+    <h5 class="card-title">{{news.title}}</h5>
+    <p class="card-text">{{news.text}}</p>
+    <a href="{{n.category}}/{{n.id}}" class="btn btn-primary">Read more...</a>
+  </div>
+</div>

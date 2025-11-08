@@ -1,0 +1,11 @@
+{% extends "_layout.html" %}
+{% load static %}
+
+{% block current_news %}
+<div class="conteiner">
+        <h1>{{news.title}}</h1>
+        <p>{{news.text}}</p>
+        <img src="{% static "assets/" %}{{news.image}}" class="card-img-top" alt="...">
+    </div>
+{% endblock current_news %}
+

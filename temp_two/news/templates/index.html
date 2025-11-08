@@ -1,0 +1,10 @@
+{% extends "_layout.html" %}
+
+{% block news_index %}
+    <h1>Main page</h1>
+    <div class="list-group">
+    {% for category in categories %}
+         <a type="button" class="list-group-item list-group-item-action" href="{{category}}" >{{category}}</a>
+    {% endfor %}
+    </div>
+    {% endblock news_index %}
