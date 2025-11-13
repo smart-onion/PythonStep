@@ -1,0 +1,21 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form method='post' id="form" action="{% url "events_p" %}">
+        {% csrf_token %}
+    {{event_form}}
+    <div id='participants'>
+        {{participant_form}}
+    </div>
+    <button id="addP" type="button">Add</button>
+    <input type='submit' value="Send" />
+    </form>
+    <script src="{% static 'js/index.js' %}"></script>
+</body>
+</html>
