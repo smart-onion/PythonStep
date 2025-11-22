@@ -1,0 +1,12 @@
+{% extends "_layout.html" %}
+
+{% block index %}
+
+{% for film in films %}
+    {% include "components/film_card.html" with film=film %}
+    {% empty %}
+    <p>No films yet</p>
+{% endfor %}
+
+<a  class="btn btn-primary" href="{% url "add_film" %}" >Add Film</a>
+{% endblock index %}

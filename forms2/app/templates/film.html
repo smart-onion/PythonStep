@@ -1,0 +1,12 @@
+{% extends "_layout.html" %}
+
+
+{% block film %}
+
+<h1>{{film.name}}</h1>
+<h1>{{film.description}}</h1>
+<h1>{{film.issued}}</h1>
+<h1>{{film.country}}</h1>
+<image src="{{film.image}}" />
+
+{% endblock film %}
