@@ -3,6 +3,12 @@
   <div class="card-body">
     <h5 class="card-title">{{film.name}}</h5>
     <p class="card-text">{{film.description}}</p>
+    <p class="card-text">Rating: {{film.rating}}</p>
+    <p class="card-text">Issued: {{film.issued}}</p>
     <a href="film/{{film.id}}" class="btn btn-primary">Read more...</a>
+    <a href="update_film?update_id={{film.id}}" class="btn btn-primary">Update</a>
+    <a href="delete_film?delete_id={{film.id}}" class="btn btn-danger">Delete</a>
+
+    
   </div>
 </div>

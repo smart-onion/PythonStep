@@ -2,11 +2,19 @@
 
 {% block index %}
 
+<form action="{% url "index" %}" method="get">
+        <select name="sort" id="sort">
+            <option value="rating">Rating</option>
+            <option value="issued">Issued</option>
+        </select>
+        <input class="btn btn-primary" value="Send" type="submit"/>
+    </form>
+<a  class="btn btn-primary" href="{% url "add_film" %}" >Add Film</a>
+
 {% for film in films %}
     {% include "components/film_card.html" with film=film %}
     {% empty %}
     <p>No films yet</p>
 {% endfor %}
 
-<a  class="btn btn-primary" href="{% url "add_film" %}" >Add Film</a>
 {% endblock index %}
