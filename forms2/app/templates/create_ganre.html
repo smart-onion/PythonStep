@@ -1,0 +1,11 @@
+{% extends "_layout.html" %}
+
+{% block ganre %}
+
+<form action="{% url "post_ganre" %}" method="post">
+    {{form}}
+    {% csrf_token %}
+    <input type="submit" value="Create" class="btn btn-primary"/>
+</form>
+
+{% endblock ganre %}

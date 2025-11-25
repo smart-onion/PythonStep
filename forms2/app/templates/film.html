@@ -1,14 +1,56 @@
 {% extends "_layout.html" %}
 
-
 {% block film %}
 
-<h1>{{film.name}}</h1>
-<h1>{{film.description}}</h1>
-<h1>{{film.issued}}</h1>
-<h1>{{film.country}}</h1>
-<p class="card-text">Rating: {{film.rating}}</p>
-    <p class="card-text">Issued: {{film.issued}}</p>
-<image src="{{film.image}}" />
+<div class="container py-4">
+
+    <div class="row">
+        <div class="col-md-8">
+
+            <h1 class="mb-3">{{ film.name }}</h1>
+
+            <p class="text-muted">{{ film.description }}</p>
+
+            <p><strong>Country:</strong> {{ film.country }}</p>
+            <p><strong>Issued:</strong> {{ film.issued }}</p>
+            <p><strong>Rating:</strong> {{ film.rating }}</p>
+
+            <p class="mt-4 text-secondary">
+                Comments: {{ comments|length }}
+            </p>
+
+            <img class="img-fluid rounded shadow w-50 my-3" src="{{ film.image }}" alt="{{ film.name }}">
+
+            <hr>
+
+            <h3 class="mt-4">Leave a comment</h3>
+
+            <form action="{% url "post_comment" %}" method="POST"> 
+                {{comment_form}} 
+                {% csrf_token %} 
+                <input type="submit" value="Comment" class="btn btn-primary"/> 
+            </form>
+
+            <hr>
+
+            {% for comment in comments %}
+                <div class="p-3 bg-light mb-3 rounded border">
+
+                    <strong>{{ comment.user_name }}</strong>
+
+                    <p class="mb-1">{{ comment.text }}</p>
+
+                    <small class="text-muted">{{ comment.date }}</small>
+                    <a  class="btn btn-danger" href="{% url "delete_comment" comment_id=comment.id%}" >Delete</a>
+                    
+                </div>
+            {% empty %}
+                <p class="text-secondary">No comments yet</p>
+            {% endfor %}
+
+        </div>
+    </div>
+
+</div>
 
 {% endblock film %}

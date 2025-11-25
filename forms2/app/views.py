@@ -1,13 +1,20 @@
 from django.shortcuts import render, redirect
-from .forms import FilmForm
-from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseNotFound
+from .forms import FilmForm, GanreForm, CommentForm
+from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseNotAllowed
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 import os
 from datetime import datetime
 from uuid import uuid4
-from .models import Film
+from .models import Film, Ganre, Comment
 
+
+def post_only(f):
+    def wrapper(req: HttpRequest, *args, **kwargs):
+        if req.method != "POST":
+            return HttpResponseNotAllowed("POST only")
+        return f(req, *args, **kwargs);
+    return wrapper
 
 
 # Film.objects.create(
@@ -38,6 +45,7 @@ def post_add_film(req: HttpRequest):
             country = filmForm.cleaned_data["country"]
             image = filmForm.cleaned_data["image"]
             rating = filmForm.cleaned_data["rating"]
+            ganre = filmForm.cleaned_data["ganre"]
             fs = FileSystemStorage(location=settings.MEDIA_ROOT)
             file_name = fs.save(get_current_timestamp() + '__' + image.name, image)
             # film = Film(name, description, issued, country, fs.url(file_name), rating)
@@ -47,7 +55,8 @@ def post_add_film(req: HttpRequest):
                 country=country,
                 rating=rating,
                 issued=issued,
-                image=fs.url(file_name)
+                image=fs.url(file_name),
+                ganre=ganre
                 )
             film.save()
             return redirect(f'film/{film.id}')
@@ -78,7 +87,8 @@ def delete_film(req: HttpRequest):
 def show_film(req: HttpRequest, id):
     films = Film.objects.all()
     f = list(filter(lambda x : str(x.id) == id, films))[0]
-    return render(req, "film.html", context={'film': f})
+    comments = Comment.objects.filter(film_id=id)
+    return render(req, "film.html", context={'film': f, "comment_form": CommentForm(initial={"film": f.id}), "comments": comments})
 
 
 def index(req: HttpRequest):
@@ -89,3 +99,40 @@ def index(req: HttpRequest):
     elif sort == "issued":
         films = films.order_by("-issued")
     return render(req, "index.html", context={'films':films })
+
+
+@post_only
+def post_create_ganre(req: HttpRequest):
+    g_name = req.POST.get("name")
+    Ganre.objects.create(name=g_name)
+    return redirect("all_ganres")
+
+def get_create_ganre(req: HttpRequest):
+    return render(req, "create_ganre.html", context={"form": GanreForm()})
+
+def get_all_ganres(req):
+    ganres = Ganre.objects.all()
+    return render(req, "all_ganres.html", context={"ganres": ganres})   
+
+@post_only
+def post_create_comment(req: HttpRequest):
+    form = CommentForm(req.POST)
+    if form.is_valid():
+        film_id = form.cleaned_data["film"]
+        user_name=form.cleaned_data["user_name"]
+        text=form.cleaned_data["text"]
+        film = Film.objects.get(id=film_id)
+
+        c = Comment.objects.filter(user_name__startswith=user_name).count()
+
+        Comment.objects.create(film=film, user_name=f"{user_name}_{c}", text=text).save()
+        return redirect(f"film/{film_id}")
+    return HttpResponseBadRequest()
+
+def delete_comment(req: HttpRequest, comment_id):
+    try:
+        comment = Comment.objects.get(id=comment_id)
+        comment.delete()
+        return redirect("index")
+    except Comment.DoesNotExist:
+        return HttpResponseNotFound()

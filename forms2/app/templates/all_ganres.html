@@ -1,0 +1,9 @@
+{% extends "_layout.html" %}
+
+{% block all_ganres %}
+    <a  class="btn btn-primary" href="{% url "create_ganre" %}" >Add Ganre</a>
+{% for ganre in ganres %}
+        <h4>{{ganre.name}}</h4>
+    {% endfor %}
+
+{% endblock all_ganres %}

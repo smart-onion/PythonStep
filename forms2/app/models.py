@@ -1,11 +1,16 @@
 from django.db import models
 import uuid
+from datetime import datetime
 from . import utils
+
+
+class Ganre(models.Model):
+    name = models.CharField(null=False, unique=True) 
+
+    def __str__(self):
+        return self.name
+
 class Film(models.Model):
-    id = models.UUIDField(
-        primary_key=True,
-        default=uuid.uuid4,
-    )
     name = models.CharField(null=False, max_length=20)
     description = models.TextField()
     issued = models.DateField()
@@ -18,6 +23,7 @@ class Film(models.Model):
                 (4,4),
                 (5,5),
             ],)
+    ganre = models.OneToOneField(Ganre, on_delete=models.PROTECT, null=False)
     
 
 class Meta:
@@ -29,4 +35,10 @@ class Meta:
         )
     ]
 
+    
+class Comment(models.Model):
+    user_name = models.CharField(null=False)
+    film = models.ForeignKey(Film, related_name="comments", on_delete=models.CASCADE)
+    text = models.TextField(null=False)
+    date = models.DateTimeField(default=datetime.now(), null=False)
     
