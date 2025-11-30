@@ -19,6 +19,9 @@ class Film(models.Model):
                 (5,5),
             ],)
     
+    def __str__(self):
+        return self.name
+    
 
 class Meta:
     db_table = "film"
