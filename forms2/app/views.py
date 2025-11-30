@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .forms import FilmForm, GanreForm, CommentForm
-from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseNotAllowed
+from django.http import HttpRequest, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseNotAllowed, HttpResponse, HttpResponseForbidden
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 import os
@@ -16,6 +16,14 @@ def post_only(f):
         return f(req, *args, **kwargs);
     return wrapper
 
+def with_permition(permition: str):
+    def inner(func):
+        def wrapper(req: HttpRequest, *args, **kwargs):
+            if req.user.has_perm(permition):
+                return func(req, *args, **kwargs)
+            return HttpResponseForbidden()
+        return wrapper
+    return inner
 
 # Film.objects.create(
 #     name="count", 
@@ -129,6 +137,7 @@ def post_create_comment(req: HttpRequest):
         return redirect(f"film/{film_id}")
     return HttpResponseBadRequest()
 
+@with_permition("app.can_moderate_comments")
 def delete_comment(req: HttpRequest, comment_id):
     try:
         comment = Comment.objects.get(id=comment_id)
@@ -136,3 +145,4 @@ def delete_comment(req: HttpRequest, comment_id):
         return redirect("index")
     except Comment.DoesNotExist:
         return HttpResponseNotFound()
+    

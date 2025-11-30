@@ -26,6 +26,13 @@ class Film(models.Model):
     ganre = models.OneToOneField(Ganre, on_delete=models.PROTECT, null=False)
     
 
+
+
+    def __str__(self):
+        print(self.__dict__)
+        return self.name
+
+
 class Meta:
     db_table = "film"
     constraints = [
@@ -38,7 +45,14 @@ class Meta:
     
 class Comment(models.Model):
     user_name = models.CharField(null=False)
-    film = models.ForeignKey(Film, related_name="comments", on_delete=models.CASCADE)
+    film = models.ForeignKey(Film, on_delete=models.CASCADE)
     text = models.TextField(null=False)
     date = models.DateTimeField(default=datetime.now(), null=False)
+
+    class Meta:
+        permissions = [
+            ("test", "test"),
+            ("can_moderate_comments", "Moderate comments")
+            
+        ]
     
