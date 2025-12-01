@@ -1,0 +1,15 @@
+{% extends "_layout.html" %}
+
+{% block discussion_update %}
+
+<div class="container mt-4" style="max-width: 600px;">
+    <form action="{{ form.id }}" method="post" class="p-4 border rounded shadow-sm bg-light">
+        {% csrf_token %}
+        
+        {{ form}}  <!-- Optional: if using django-crispy-forms for nicer styling -->
+        
+        <button type="submit" class="btn btn-primary mt-3 w-100">Update</button>
+    </form>
+</div>
+
+{% endblock discussion_update %}

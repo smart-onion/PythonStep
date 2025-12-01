@@ -1,0 +1,148 @@
+{% extends "_layout.html" %}
+
+{% block discussion %}
+
+<div class="container mt-4">
+
+    <div class="row">
+
+        <!-- MAIN CONTENT -->
+        <div class="col-lg-8 mb-4">
+
+            <!-- Discussion Card -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+
+                    <h2 class="card-title mb-3">
+                        <i class="bi bi-chat-left-text me-2"></i>
+                        {{ discussion.subject }}
+                    </h2>
+
+                    <p class="card-text fs-5">{{ discussion.text }}</p>
+
+                </div>
+            </div>
+
+            <!-- COMMENTS -->
+            <div class="card shadow-sm mb-4">
+                
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-dots me-2"></i> Comments
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <!-- Add Comment -->
+                    <form action="{% url 'comment_create' id=discussion.id %}" method="post" class="mb-4">
+                        {% csrf_token %}
+                        {{ comment_form }}
+                        <button class="btn btn-primary btn-sm mt-2">
+                            <i class="bi bi-reply-fill me-1"></i> Reply
+                        </button>
+                    </form>
+
+                    <!-- Comment List -->
+                    {% for comment in comments %}
+
+                        <div class="mb-3 pb-3 border-bottom comment-item">
+
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <p class="mb-0 fw-semibold">
+                                    <i class="bi bi-person-circle me-2"></i>
+                                    {{ comment.author }}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar me-1"></i>{{ comment.issued }}
+                                </small>
+                            </div>
+
+                            <p class="mb-1">{{ comment.text }}</p>
+
+                            <div class="d-flex gap-2">
+
+                                <a href="{% url 'comment_like' %}?id={{ comment.id }}" 
+                                   class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-hand-thumbs-up me-1"></i>
+                                    Like ({{ comment.Likes }})
+                                </a>
+
+                                {% if user == comment.author %}
+                                    <a href="{% url 'comment_delete' comment.id %}" 
+                                       class="btn btn-sm btn-outline-secondary">
+                                        <i class="bi bi-trash me-1"></i> Delete
+                                    </a>
+                                {% endif %}
+
+                            </div>
+
+                        </div>
+
+                    {% empty %}
+                        <p class="text-muted">No comments yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <div class="col-lg-4">
+
+            <div class="card shadow-sm mb-4">
+                
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle me-2"></i> Discussion Details
+                    </h5>
+                </div>
+
+                <div class="card-body">
+
+                    <ul class="list-unstyled text-muted mb-3">
+                        <li class="mb-2"><i class="bi bi-person-circle me-2"></i>
+                            <strong>Author:</strong> {{ discussion.author }}</li>
+
+                        <li class="mb-2"><i class="bi bi-tag me-2"></i>
+                            <strong>Category:</strong> {{ discussion.category }}</li>
+
+                        <li class="mb-2"><i class="bi bi-calendar-event me-2"></i>
+                            <strong>Date:</strong> {{ discussion.issued }}</li>
+
+                        <li class="mb-2"><i class="bi bi-hand-thumbs-up me-2"></i>
+                            <strong>Likes:</strong> {{ discussion.Likes }}</li>
+                    </ul>
+
+                    <div class="d-flex flex-column gap-2">
+                        
+                        <a href="{% url 'discussion_like' %}?id={{ discussion.id }}&next={{ request.path|urlencode }}" 
+                           class="btn btn-danger">
+                            <i class="
+                            {% if has_like %}
+                            bi bi-hand-thumbs-up-fill
+                            {% else %}
+                            bi bi-hand-thumbs-up me-1
+                            {% endif %}
+                            "
+                            ></i> Like
+                        </a>
+                        {% if request.user == discussion.author %}
+                           <a href="{% url 'discussion_update' discussion.id %}" class="btn btn-sm btn-outline-warning">
+                            <i class="bi bi-pencil me-1"></i> Update
+                            </a>
+                            <a href="{% url 'discussion_delete' discussion.id %}" 
+                           class="btn btn-outline-danger">
+                            <i class="bi bi-x-lg me-1"></i> Delete
+                        </a>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+{% endblock discussion %}

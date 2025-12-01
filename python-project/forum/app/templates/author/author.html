@@ -1,0 +1,61 @@
+{% extends "_layout.html" %}
+
+{% block author %}
+<div class="container my-5">
+    <!-- Author Header -->
+    <div class="text-center mb-5">
+        <h1 class="display-4 fw-bold">{{ author.username }}</h1>
+        <p class="lead text-muted">Opened Discussions</p>
+    </div>
+
+    {% if discussions %}
+        <div class="row g-4">
+            {% for discussion in discussions %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body d-flex flex-column">
+                            <!-- Subject -->
+                            <h5 class="card-title fw-semibold">{{ discussion.subject }}</h5>
+                            
+                            <!-- Category -->
+                            <p class="text-secondary mb-2">
+                                Category: 
+                                <a href="{% url 'discussions' id=discussion.category.id %}" class="text-decoration-none">
+                                    {{ discussion.category }}
+                                </a>
+                            </p>
+                            
+                            <!-- Discussion Text -->
+                            <p class="card-text text-truncate" style="max-height: 4.5em; overflow: hidden;">
+                                {{ discussion.text }}
+                            </p>
+
+                            <!-- Stats -->
+                            <div class="mt-auto d-flex justify-content-between align-items-center">
+                               <div class="mb-3 d-flex gap-3">
+      <span class="badge bg-danger">
+        <a href="{% url 'discussion_like' %}?id={{ discussion.id }}&next={{request.path|urlencode}}" class="btn btn-sm">
+                <i class="bi bi-hand-thumbs-up me-1"></i> {{ discussion.Likes }}
+      </a>
+      </span>
+
+      <span class="badge bg-secondary">
+        <a href="{% url 'discussion' discussion.id %}#comments" class="btn btn-sm">
+        <i class="bi bi-chat-dots me-1"></i> {{ discussion.Comments }}
+      </a>
+      </span>
+    </div>
+                                <a href="{% url 'discussion' id=discussion.id %}" class="btn btn-sm btn-primary">
+                                    Read More
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p class="text-muted text-center">No discussions opened yet.</p>
+    {% endif %}
+</div>
+{% endblock author %}
